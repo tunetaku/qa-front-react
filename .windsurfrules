@@ -1,0 +1,30 @@
+# .windsurfrules
+
+## 1. 型・API設計
+- 型定義は `src/types.ts` に集約し、API用の型（例: NewQuestion, NewAnswer）は必要に応じてAPIごとのファイルに定義する。
+- APIエンドポイントは `BaseURL` + `/odata/` 配下を利用し、OData形式のクエリを活用する。
+- **ODataレスポンスの取り扱い：**
+  - 単一データ取得（`/odata/Questions({id})` など）は `res.json()` の戻り値をそのまま利用する。
+  - 複数データ取得（`/odata/Questions`, `/odata/Answers` など）は `res.json().value` を利用する。
+- API通信は必ずfetch等の非同期関数でラップし、try/catchでエラーハンドリングを行う。
+- **非同期関数の記述は必ず `async/await` を用いる（thenチェーン禁止）。**
+- 型安全・null安全を徹底し、API型とUI型の齟齬を防ぐ。
+
+## 2. UI実装
+- UIはFluent UI（@fluentui/react-components）を標準とし、Input/Dropdown/Button/Field/Accordionなどで統一する。
+- 複数選択が必要な箇所（例: タグ）はmulti-select Dropdownで実装する。
+- Optionのvalueは必ず `String(id)` とし、map/filter時は `.filter(x => x && x.id != null)` でnull/undefined混入を防ぐ。
+- Fluent UI DropdownのOptionコンポーネントは公式ドキュメント通りに使うこと。不具合時は公式ドキュメントを参照する。
+
+## 3. コード品質
+- 必須項目はUIとバリデーションで明示し、エラー表示も行う（FieldのvalidationState/validationMessageを活用）。
+- 例外発生時はcatchしてユーザーに分かりやすいメッセージを表示する。
+- ルーティングパラメータ名とuseParamsのキーは必ず一致させる。
+
+## 4. ルーティング・実行計画
+- **ルーティング設定は必ず `src/App.tsx` を確認し、pathパラメータ名・画面遷移先の整合性を保つ。**
+- 新規タスク開始時は、まずこの.windsurfrulesを確認し、ルールに沿った計画を立てる。
+- 設計・実装・レビューの各フェーズでルール逸脱がないか都度見直す。
+
+## 5. その他
+- ルールの追加・変更があれば必ずこのファイルを最新化し、全員で共有する。

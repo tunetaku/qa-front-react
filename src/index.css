@@ -1,0 +1,17 @@
+/* Reset header tag default margin and padding */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.fui-Toaster {
+  background: #fff !important;
+  color: #222 !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+}
+
+
+/* (Optional) You can add more resets for other tags if needed */

@@ -11,6 +11,7 @@ interface UserContextType {
   setUser: (user: User | null) => void;
   saveUser: (user: User) => Promise<void>;
   clearUser: () => void;
+  saveUserToLocalStorage: (user: User) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -34,11 +35,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const saveUser = async (newUser: User) => {
     try {
       await userApi.saveUserToDb(newUser); // DB保存
-      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(newUser));
-      setUser(newUser);
+      saveUserToLocalStorage(newUser);
     } catch (e) {
       throw e;
     }
+  };
+
+  //localstorageへ保存
+  const saveUserToLocalStorage = (user: User) => {
+    localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(user));
+    setUser(user);
   };
 
   // ログアウト等でユーザー情報削除
@@ -48,7 +54,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, saveUser, clearUser }}>
+    <UserContext.Provider value={{ user, setUser, saveUser, clearUser,saveUserToLocalStorage }}>
       {children}
     </UserContext.Provider>
   );

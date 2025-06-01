@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Field, Input, Button, RadioGroup, Radio } from '@fluentui/react-components';
 import { useUser } from '../../contexts/UserContext';
 import type { User } from '../../types';
-import { fetchAllHandleNames } from './api';
+import { fetchAllHandleNames, getUserByLdapId } from './api';
 import { animalEmojiMap } from '../../config';
 import { UserHandle } from '../../components/UserHandle';
 
 export default function Page() {
-  const { user, saveUser } = useUser();
+  const { user, saveUser,saveUserToLocalStorage } = useUser();
   const navigate = useNavigate();
   const [ldapId, setLdapId] = useState('');
   const [handleName, setHandleName] = useState('');
@@ -30,6 +30,7 @@ export default function Page() {
   // 動物名＋絵文字
   const handleNameWords = Object.keys(animalEmojiMap);
 
+  // ハンドルネーム生成
   function generateHandleNameCandidate(existing: string[]): string {
     let tries = 0;
     let candidate = '';
@@ -41,6 +42,8 @@ export default function Page() {
     } while ((existing.includes(candidate) || candidate === '') && tries < 10);
     return candidate;
   }
+
+  // ハンドルネーム候補生成
   function generateHandleNameCandidates(existing: string[], count = 10): string[] {
     const candidates: string[] = [];
     let tries = 0;
@@ -72,12 +75,14 @@ export default function Page() {
     setHandleName(candidates[0] || '');
   };
 
+  // バリデーション
   const validate = () => {
     if (!ldapId.trim()) return 'LDAP IDは必須です';
     if (!handleName.trim()) return 'ハンドルネームは必須です';
     return null;
   };
 
+  // 登録
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -89,6 +94,14 @@ export default function Page() {
     setLoading(true);
     try {
       const user: User = { LdapId: ldapId.trim(), HandleName: handleName.trim() };
+      //localStorageになくてもdbに保存されていないか確認する
+      const existingUser = await getUserByLdapId(ldapId.trim());
+      if (existingUser) {
+        //DBに保存されているがlocalStorageになかった場合
+        saveUserToLocalStorage(existingUser);
+        navigate('/home');
+        return;
+      }
       await saveUser(user);
       navigate('/home');
     } catch (e: any) {
